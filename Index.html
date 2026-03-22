@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI PRD Generator — Product Requirements Document Builder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736;
+    --border: #2e3146; --accent: #6c63ff; --accent2: #00d4aa;
+    --text: #e8eaf0; --muted: #8b90a8; --danger: #ff6b6b;
+    --success: #51cf66; --warning: #ffd43b;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+  .logo span { color: var(--accent2); }
+  .badge { font-size: 11px; background: var(--accent); color: white; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .hero { text-align: center; margin-bottom: 40px; }
+  .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 12px; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { color: var(--muted); font-size: 16px; max-width: 560px; margin: 0 auto; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media(max-width:720px){ .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+  .card h2 { font-size: 15px; font-weight: 600; color: var(--accent2); margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; margin-top: 14px; }
+  label:first-of-type { margin-top: 0; }
+  input, textarea, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 10px 12px; font-size: 14px;
+    font-family: inherit; resize: vertical; transition: border-color .2s;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+  textarea { min-height: 80px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 12px 24px; font-size: 15px; font-weight: 600; cursor: pointer;
+    width: 100%; justify-content: center; margin-top: 20px; transition: opacity .2s;
+  }
+  .btn:hover { opacity: .85; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .btn.secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+  .output-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-top: 28px; display: none; }
+  .output-card.visible { display: block; }
+  .prd-section { margin-bottom: 28px; }
+  .prd-section h3 { font-size: 14px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .prd-content { font-size: 14px; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
+  .status-bar { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .loader { display: none; text-align: center; padding: 40px; }
+  .loader.visible { display: block; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .copy-btn { float: right; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+  .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag { background: var(--surface2); border: 1px solid var(--border); color: var(--accent2); padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+  .meta { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+  .meta-box { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; }
+  .meta-box .val { font-size: 20px; font-weight: 700; color: var(--accent2); }
+  .meta-box .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .template-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chip { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; transition: all .2s; }
+  .chip.active, .chip:hover { background: var(--accent); border-color: var(--accent); color: white; }
+  footer { text-align: center; padding: 32px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); margin-top: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">PRD<span>Gen</span></div>
+  <span class="badge">Powered by Claude AI</span>
+</header>
+
+<div class="container">
+  <div class="hero">
+    <h1>AI Product Requirements Generator</h1>
+    <p>Generate professional PRDs, user stories, and acceptance criteria in seconds. Built by a Product Owner, for Product Owners.</p>
+  </div>
+
+  <div class="template-chips">
+    <div class="chip active" onclick="loadTemplate('saas',this)">SaaS Feature</div>
+    <div class="chip" onclick="loadTemplate('mobile',this)">Mobile App</div>
+    <div class="chip" onclick="loadTemplate('api',this)">API / Integration</div>
+    <div class="chip" onclick="loadTemplate('dashboard',this)">Analytics Dashboard</div>
+    <div class="chip" onclick="loadTemplate('ecommerce',this)">E-Commerce</div>
+    <div class="chip" onclick="loadTemplate('blank',this)">Blank</div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Product Context</h2>
+      <label>Product / Feature Name</label>
+      <input type="text" id="productName" placeholder="e.g. PIM Data Quality Dashboard">
+      <label>Problem Statement</label>
+      <textarea id="problem" placeholder="What problem does this solve? Who experiences it?"></textarea>
+      <label>Target Users</label>
+      <input type="text" id="users" placeholder="e.g. Internal sales team, 50 users across 4 countries">
+      <label>Business Goal</label>
+      <input type="text" id="goal" placeholder="e.g. Reduce product data errors by 40%">
+      <label>Product Type</label>
+      <select id="productType">
+        <option>Web Application</option>
+        <option>Mobile App</option>
+        <option>API / Integration</option>
+        <option>Dashboard / Analytics</option>
+        <option>E-Commerce Feature</option>
+        <option>Internal Tool</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h2>Requirements Detail</h2>
+      <label>Core Features (one per line)</label>
+      <textarea id="features" placeholder="Real-time data validation&#10;Bulk import from SAP&#10;Error flagging with owner assignment" style="min-height:100px"></textarea>
+      <label>Success Metrics / KPIs</label>
+      <textarea id="kpis" placeholder="e.g. Data error rate < 2%, time to fix < 24hrs"></textarea>
+      <label>Constraints / Out of Scope</label>
+      <textarea id="constraints" placeholder="e.g. Must use existing SSO, no mobile version in v1"></textarea>
+      <label>Priority Level</label>
+      <select id="priority">
+        <option>High — P1 (Critical)</option>
+        <option>Medium — P2 (Important)</option>
+        <option>Low — P3 (Nice to have)</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="btn" id="generateBtn" onclick="generatePRD()">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Generate PRD with AI
+  </button>
+
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+    <p style="color:var(--muted)">Claude AI is generating your PRD...</p>
+  </div>
+
+  <div class="output-card" id="output">
+    <div class="status-bar"><div class="dot"></div><span>PRD Generated Successfully</span><button class="copy-btn" onclick="copyAll()">Copy All</button></div>
+    <div class="meta">
+      <div class="meta-box"><div class="val" id="storyCount">0</div><div class="lbl">User Stories</div></div>
+      <div class="meta-box"><div class="val" id="criteriaCount">0</div><div class="lbl">Acceptance Criteria</div></div>
+      <div class="meta-box"><div class="val" id="wordCount">0</div><div class="lbl">Total Words</div></div>
+    </div>
+    <div id="prdContent"></div>
+  </div>
+</div>
+
+<footer>Built by Monil Raval · Product Owner · clarushorizon.com · github.com/monilraval</footer>
+
+<script>
+const TEMPLATES = {
+  saas: { productName:"Customer Data Sync — SaaS Integration", problem:"Sales teams manually export data between CRM and the product database, causing delays and errors in 30% of records.", users:"Sales Operations team, 25 users across Germany and UK", goal:"Automate CRM-to-product sync to eliminate manual effort and reduce errors to under 1%", features:"Bi-directional Salesforce sync\nConflict resolution UI\nSync status dashboard\nError notification system\nAudit log", kpis:"Sync time < 5 minutes, error rate < 1%, user adoption > 80% in 60 days", constraints:"Must use existing Salesforce API, no custom fields in v1, GDPR compliant" },
+  mobile: { productName:"Field Technician Mobile App", problem:"Field technicians record maintenance data on paper, leading to lost records and 4-hour delays in reporting.", users:"200 field technicians across Europe", goal:"Digitise field reporting to reduce reporting time by 75%", features:"Offline-first data capture\nPhoto upload with GPS tagging\nDigital signature collection\nPDF report generation\nSync on connectivity restore", kpis:"Report submission time < 15 min, data accuracy > 98%, offline capability 100%", constraints:"iOS and Android, works offline, existing SAP backend integration required" },
+  api: { productName:"Product Data API Gateway", problem:"12 internal systems query the PIM database directly, causing performance issues and inconsistent data formats.", users:"Engineering teams, 4 internal system integrations", goal:"Standardise all product data access through a single API layer", features:"RESTful endpoints for all product entities\nRate limiting and auth\nWebhook support for data changes\nAPI documentation portal\nVersion management", kpis:"Response time < 200ms, 99.9% uptime, 100% API adoption by internal teams", constraints:"Must maintain backward compatibility for 6 months, OpenAPI spec required" },
+  dashboard: { productName:"Executive KPI Dashboard", problem:"Leadership manually compiles KPIs from 5 systems into weekly PowerPoint decks, taking 8 hours per week.", users:"C-suite and VPs, 12 users", goal:"Automate KPI aggregation to save 8 hours/week and enable real-time decision making", features:"Real-time data from Salesforce, SAP, and Google Analytics\nCustom date range filters\nDrill-down by region\nAutomated weekly email digest\nExport to PDF", kpis:"Dashboard load time < 3s, data freshness < 1 hour, user satisfaction > 4/5", constraints:"Read-only access, no raw data export, SSO required" },
+  ecommerce: { productName:"Personalised Product Recommendations Engine", problem:"35% of users leave the product page without engaging with related items, reducing average order value.", users:"All e-commerce customers, 50,000 monthly active users", goal:"Increase average order value by 15% through personalised recommendations", features:"ML-based recommendation engine\nA/B testing framework\nReal-time personalisation\nFallback rules-based logic\nPerformance analytics", kpis:"AOV increase +15%, CTR on recommendations > 8%, latency < 100ms", constraints:"No PII in recommendation model, GDPR compliant, mobile-first" },
+  blank: { productName:"", problem:"", users:"", goal:"", features:"", kpis:"", constraints:"" }
+};
+
+function loadTemplate(key, el) {
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const t = TEMPLATES[key];
+  if (!t) return;
+  document.getElementById('productName').value = t.productName||'';
+  document.getElementById('problem').value = t.problem||'';
+  document.getElementById('users').value = t.users||'';
+  document.getElementById('goal').value = t.goal||'';
+  document.getElementById('features').value = t.features||'';
+  document.getElementById('kpis').value = t.kpis||'';
+  document.getElementById('constraints').value = t.constraints||'';
+}
+
+loadTemplate('saas', document.querySelector('.chip.active'));
+
+async function generatePRD() {
+  const productName = document.getElementById('productName').value.trim();
+  const problem = document.getElementById('problem').value.trim();
+  const users = document.getElementById('users').value.trim();
+  const goal = document.getElementById('goal').value.trim();
+  const features = document.getElementById('features').value.trim();
+  const kpis = document.getElementById('kpis').value.trim();
+  const constraints = document.getElementById('constraints').value.trim();
+  const priority = document.getElementById('priority').value;
+  const productType = document.getElementById('productType').value;
+
+  if (!productName || !problem || !goal) {
+    alert('Please fill in at least Product Name, Problem Statement, and Business Goal.');
+    return;
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  document.getElementById('loader').classList.add('visible');
+  document.getElementById('output').classList.remove('visible');
+
+  const prompt = `You are a senior Product Owner with 10+ years experience. Generate a professional Product Requirements Document (PRD) for the following:
+
+PRODUCT NAME: ${productName}
+PRODUCT TYPE: ${productType}
+PRIORITY: ${priority}
+PROBLEM STATEMENT: ${problem}
+TARGET USERS: ${users}
+BUSINESS GOAL: ${goal}
+CORE FEATURES REQUESTED: ${features}
+SUCCESS METRICS / KPIs: ${kpis}
+CONSTRAINTS / OUT OF SCOPE: ${constraints}
+
+Generate a complete PRD with exactly these sections:
+1. EXECUTIVE SUMMARY (2-3 sentences, business impact focused)
+2. PROBLEM STATEMENT & OPPORTUNITY (Expanded, with user pain points)
+3. GOALS & SUCCESS METRICS (SMART goals, measurable KPIs)
+4. USER PERSONAS (2 personas with name, role, goals, frustrations)
+5. USER STORIES (Write 5 user stories in format: "As a [persona], I want to [action] so that [benefit]")
+6. FUNCTIONAL REQUIREMENTS (Numbered list of 8-10 specific requirements)
+7. ACCEPTANCE CRITERIA (For each user story, write 2 acceptance criteria in Gherkin format: Given/When/Then)
+8. OUT OF SCOPE (Clear boundaries)
+9. RISKS & MITIGATIONS (3 risks with mitigation strategies)
+10. TIMELINE ESTIMATE (Rough sprint breakdown)
+
+Be specific, professional, and actionable. Use product management best practices.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.map(i => i.text || '').join('\n') || 'Error generating PRD. Please try again.';
+    renderPRD(text, productName);
+  } catch(err) {
+    renderPRD(`# ${productName} — PRD\n\n## Executive Summary\nThis PRD defines requirements for ${productName}.\n\n## Problem Statement\n${problem}\n\n## Goals\n${goal}\n\n## User Stories\n- As a user, I want to ${features.split('\n')[0]||'use this feature'} so that I can achieve my goals.\n\n## Note\nAPI connection unavailable — showing template output. Add your API key to enable AI generation.`, productName);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('loader').classList.remove('visible');
+  }
+}
+
+function renderPRD(text, productName) {
+  const sections = text.split(/\n(?=#{1,3} |\d+\. [A-Z])/);
+  let html = '';
+  const storyMatches = (text.match(/As a /gi)||[]).length;
+  const criteriaMatches = (text.match(/Given |When |Then /gi)||[]).length;
+  const words = text.split(/\s+/).length;
+
+  document.getElementById('storyCount').textContent = storyMatches;
+  document.getElementById('criteriaCount').textContent = criteriaMatches;
+  document.getElementById('wordCount').textContent = words;
+
+  text.split('\n\n').forEach(block => {
+    if (block.startsWith('#')) {
+      const title = block.replace(/^#+\s*\d*\.?\s*/, '').split('\n')[0];
+      const content = block.split('\n').slice(1).join('\n');
+      html += `<div class="prd-section"><h3>${title}</h3><div class="prd-content">${content}</div></div>`;
+    } else {
+      html += `<div class="prd-content" style="margin-bottom:16px">${block}</div>`;
+    }
+  });
+
+  document.getElementById('prdContent').innerHTML = html || `<div class="prd-content">${text}</div>`;
+  document.getElementById('output').classList.add('visible');
+  document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyAll() {
+  const text = document.getElementById('prdContent').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy All', 2000);
+  });
+}
+</script>
+</body>
+</html>
