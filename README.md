@@ -2,7 +2,7 @@
 
 > Built by **Monil Raval** — Product Owner | Ex-AGCO/Fendt, Bosch | MBA Operational Excellence
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-View%20App-6c63ff?style=for-the-badge)](https://monilraval.github.io/prd-generator)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-View%20App-6c63ff?style=for-the-badge)](https://monilraval.github.io/PRD-Generator)
 [![Made with Claude AI](https://img.shields.io/badge/Powered%20by-Claude%20AI-00d4aa?style=for-the-badge)](https://anthropic.com)
 [![Product Management](https://img.shields.io/badge/Product-Management-ff6b6b?style=for-the-badge)]()
 
@@ -29,7 +29,7 @@ A fully functional AI-powered tool that generates professional **Product Require
 
 ## 🚀 Live Demo
 
-**[→ Open the PRD Generator](https://monilraval.github.io/prd-generator)**
+**[→ Open the PRD Generator](https://monilraval.github.io/PRD-Generator)**
 
 No installation needed. Works in any modern browser.
 
@@ -50,7 +50,7 @@ This tool solves that by:
 ## 🏗️ How to Use
 
 ### Option A — Use Live (Recommended)
-Visit [monilraval.github.io/prd-generator](https://monilraval.github.io/prd-generator) — no setup needed.
+Visit [monilraval.github.io/prd-generator](https://monilraval.github.io/PRD-Generator) — no setup needed.
 
 ### Option B — Run Locally
 ```bash
